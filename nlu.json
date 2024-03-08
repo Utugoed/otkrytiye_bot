@@ -1,0 +1,64 @@
+{
+    "project": {
+        "id": "zb-echo-cailapub-template_en",
+        "name": "zb-echo-cailapub-template_en",
+        "folder": "/platform"
+    },
+    "settings": {
+        "language": "en",
+        "spellingCorrection": false,
+        "classificationAlgorithm": "sts",
+        "validation": {
+            "phraseValidationEnabled": true,
+            "answerValidationEnabled": true,
+            "phraseValidationThreshold": 0.5,
+            "answerValidationThreshold": 0.8
+        },
+        "timezone": "Europe/Moscow",
+        "extendedSettings": {
+            "useShared": false
+        }
+    },
+    "intents": [],
+    "entities": [],
+    "enabledSystemEntities": [
+        "duckling.number",
+        "duckling.time",
+        "duckling.duration",
+        "duckling.phone-number",
+        "duckling.email",
+        "duckling.url"
+    ],
+    "systemEntities": [
+        {
+            "name": "duckling.number",
+            "version": "v2",
+            "enabled": true
+        },
+        {
+            "name": "duckling.time",
+            "version": "v2",
+            "enabled": true
+        },
+        {
+            "name": "duckling.duration",
+            "version": "v2",
+            "enabled": true
+        },
+        {
+            "name": "duckling.phone-number",
+            "version": "v2",
+            "enabled": true
+        },
+        {
+            "name": "duckling.email",
+            "version": "v2",
+            "enabled": true
+        },
+        {
+            "name": "duckling.url",
+            "version": "v2",
+            "enabled": true
+        }
+    ]
+}
