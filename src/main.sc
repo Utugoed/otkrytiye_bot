@@ -101,8 +101,7 @@ theme: /
                     ),
                     2000
                 );
-                
-                $context.session = {};
+
 
 
     state: Echo
