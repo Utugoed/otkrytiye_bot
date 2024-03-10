@@ -15,11 +15,10 @@ patterns:
 theme: /
 
     init:
-        var SESSION_TIMEOUT_MS = 60000; // Минута
+        var SESSION_TIMEOUT_MS = 10000; // Минута
 
         bind("preMatch", function($context) {
             $context.request.query = $context.request.query.replace(/[^a-zA-Zа-яА-Я]/g, ' ');
-            log("TEXTCONTEXT - " + $context.textContext);
         });
         
         bind("postProcess", function($context) {
@@ -29,13 +28,15 @@ theme: /
         bind("preProcess", function($context) {
             if ($context.session.lastActiveTime) {
                 var interval = $jsapi.currentTime() - $context.session.lastActiveTime;
-                if (interval > SESSION_TIMEOUT_MS) $jsapi.startSession();
+                $context.session.isTimedOut = (interval > SESSION_TIMEOUT_MS);
             }
+            $context.session.lastState = $context.currentState;
         });
 
     state: PasswordEdit
         q!: {* $pin_ptrn *}
         script:
+            log($session);
             $reactions.answer("Здравствуйте!");
             $reactions.answer(
                 'Сейчас расскажу порядок действий.\n' + 
@@ -50,24 +51,27 @@ theme: /
             q!: * {$atm_ptrn * $pin_ptrn} *
             q: (2|карта)
             
-            script:
-                $reactions.answer(
-                    'Это можно сделать в приложении:\n' +
-                    '1. На экране "Мои деньги" в разделе "Карты" нажмите на нужную.\n' +
-                    '2. Выберите вкладку "Настройки".\n' +
-                    '3. Нажмите "Сменить пин-код".\n' +
-                    '4. И введите комбинацию, удобную вам.\n' +
-                    '5. Повторите ее.'
-                );
-                
-                $reactions.answer(
-                    'И все готово!\n' +
-                    'Пин-код установлен, можно пользоваться. J '
-                );
-
-                $reactions.answer("Приятно было пообщаться. Всегда готов помочь вам снова J");
-        
-            go: /
+            if: $session.isTimedOut
+                go!: /
+            else:
+                script:
+                    $reactions.answer(
+                        'Это можно сделать в приложении:\n' +
+                        '1. На экране "Мои деньги" в разделе "Карты" нажмите на нужную.\n' +
+                        '2. Выберите вкладку "Настройки".\n' +
+                        '3. Нажмите "Сменить пин-код".\n' +
+                        '4. И введите комбинацию, удобную вам.\n' +
+                        '5. Повторите ее.'
+                    );
+                    
+                    $reactions.answer(
+                        'И все готово!\n' +
+                        'Пин-код установлен, можно пользоваться. J '
+                    );
+    
+                    $reactions.answer("Приятно было пообщаться. Всегда готов помочь вам снова J");
+            
+                go: /
         
         state: AppPasswordEdit
             q!: * {$entrance_ptrn * $pin_ptrn} * $weight<1.2>
@@ -75,32 +79,35 @@ theme: /
             q!: {* $creds_ptrn *}
             q: (1|приложение)
             
-            scriptEs6:
-                $conversationApi.sendTextToClient(
-                    'Смена пароля от приложения возможна несколькими способами:\n' +
-                    '1. на экране "Профиль" выберите "Изменить код входа в приложение".\n' +
-                    '2. введите SMS-код.\n' +
-                    '3. придумайте новый код для входа в приложение и повторите его.'
-                );
+            if: $session.isTimedOut
+                go!: /
+            else:
+                scriptEs6:
+                    $conversationApi.sendTextToClient(
+                        'Смена пароля от приложения возможна несколькими способами:\n' +
+                        '1. на экране "Профиль" выберите "Изменить код входа в приложение".\n' +
+                        '2. введите SMS-код.\n' +
+                        '3. придумайте новый код для входа в приложение и повторите его.'
+                    );
+                    
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    $reactions.answer(
+                        'Либо нажмите на кнопку "Выйти" на странице ввода пароля для входа в приложение.\n\n' +
+                        'После чего нужно будет заново пройти регистрацию:\n' +
+                        '1. ввести полный номер карты (если оформляли ранее, иначе номер телефона и дату рождения),\n' +
+                        '2. указать код из смс-код,\n' +
+                        '3. придумать новый пароль для входа.'
+                    );
+                    
+                    setTimeout(
+                        () => $conversationApi.sendTextToClient(
+                            "Приятно было пообщаться. Всегда готов помочь вам снова J"
+                        ),
+                        2000
+                    );
                 
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                
-                $reactions.answer(
-                    'Либо нажмите на кнопку "Выйти" на странице ввода пароля для входа в приложение.\n\n' +
-                    'После чего нужно будет заново пройти регистрацию:\n' +
-                    '1. ввести полный номер карты (если оформляли ранее, иначе номер телефона и дату рождения),\n' +
-                    '2. указать код из смс-код,\n' +
-                    '3. придумать новый пароль для входа.'
-                );
-                
-                setTimeout(
-                    () => $conversationApi.sendTextToClient(
-                        "Приятно было пообщаться. Всегда готов помочь вам снова J"
-                    ),
-                    2000
-                );
-            
-            go: /
+                go: /
 
 
     state: Garbage
@@ -109,3 +116,4 @@ theme: /
         q!: {* $error_ptrn * [$error_ptrn] *} $weight<1.1+0.4>
         q!: *
         a: Garbage request
+ 
