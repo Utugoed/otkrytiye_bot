@@ -15,7 +15,7 @@ patterns:
 theme: /
 
     init:
-        var SESSION_TIMEOUT_MS = 10000; // Минута
+        var SESSION_TIMEOUT_MS = 60000; // Минута
 
         bind("preMatch", function($context) {
             $context.request.query = $context.request.query.replace(/[^a-zA-Zа-яА-Я]/g, ' ');
