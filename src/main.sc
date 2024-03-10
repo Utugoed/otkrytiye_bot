@@ -33,12 +33,6 @@ theme: /
             }
         });
 
-    state: Garbage
-        q!: {* $qr_ptrn *} $weight<+0.4>
-        q!: {* $sms_ptrn *} $weight<1.1+0.4>
-        q!: {* $error_ptrn * [$error_ptrn] *} $weight<1.1+0.4>
-        a: Garbage request
-
     state: PasswordEdit
         q!: {* $pin_ptrn *}
         script:
@@ -55,6 +49,7 @@ theme: /
             q!: * {$pin_ptrn * $card_ptrn} *
             q!: * {$atm_ptrn * $pin_ptrn} *
             q: (2|карта)
+            
             script:
                 $reactions.answer(
                     'Это можно сделать в приложении:\n' +
@@ -72,16 +67,17 @@ theme: /
 
                 $reactions.answer("Приятно было пообщаться. Всегда готов помочь вам снова J");
         
+            go: /
+        
         state: AppPasswordEdit
             q!: * {$entrance_ptrn * $pin_ptrn} * $weight<1.2>
             q!: * {$pin_ptrn * ($app_ptrn|$prsnl_acc_ptrn)} *
             q!: {* $creds_ptrn *}
             q: (1|приложение)
+            
             scriptEs6:
-                $jsapi.startSession();
-                
                 $conversationApi.sendTextToClient(
-                    'Смена пароля от приложения возможна несколькими способами:' +
+                    'Смена пароля от приложения возможна несколькими способами:\n' +
                     '1. на экране "Профиль" выберите "Изменить код входа в приложение".\n' +
                     '2. введите SMS-код.\n' +
                     '3. придумайте новый код для входа в приложение и повторите его.'
@@ -103,12 +99,13 @@ theme: /
                     ),
                     2000
                 );
+            
+            go: /
 
 
-    state: Echo
-        event!: noMatch
-        a: You said: {{$context.request.query}}
-
-    state: Match
-        event!: match
-        a: {{$context.intent.answer}}
+    state: Garbage
+        q!: {* $qr_ptrn *} $weight<+0.4>
+        q!: {* $sms_ptrn *} $weight<1.1+0.4>
+        q!: {* $error_ptrn * [$error_ptrn] *} $weight<1.1+0.4>
+        q!: *
+        a: Garbage request
