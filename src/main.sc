@@ -78,8 +78,6 @@ theme: /
             q!: {* $creds_ptrn *}
             q: (1|приложение)
             scriptEs6:
-                $jsapi.stopSession();
-                
                 $conversationApi.sendTextToClient(
                     'Смена пароля от приложения возможна несколькими способами:' +
                     '1. на экране "Профиль" выберите "Изменить код входа в приложение".\n' +
@@ -103,6 +101,8 @@ theme: /
                     ),
                     2000
                 );
+                
+                $context.session = {};
 
 
     state: Echo
